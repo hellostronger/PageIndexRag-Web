@@ -1,0 +1,26 @@
+# PageIndex Web — kernel + web server
+#
+# The pageindex/ package in this repo is the upstream 0.2.x SDK: it reaches
+# models through LiteLLM, so litellm is the dependency that matters, and the
+# bare `openai` pin the 0.1.x copy needed is no longer what calls the API.
+
+# ── PageIndex kernel ──
+litellm==1.97.0
+requests>=2.28.0
+urllib3>=1.26
+openai>=1.70.0
+openai-agents>=0.18.1
+mcp>=1.19.0,<3
+PyPDF2==3.0.1
+pypdfium2==5.13.0
+python-dotenv==1.2.2
+pyyaml==6.0.2
+regex>=2024.0.0
+sortedcontainers==2.4.0
+Pillow>=9.0
+
+# ── Web server ──
+fastapi>=0.115.0
+uvicorn[standard]>=0.31.0
+python-multipart>=0.0.9
+python-docx>=1.1.0

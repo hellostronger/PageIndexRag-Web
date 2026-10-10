@@ -1,0 +1,47 @@
+# PageIndex 0.2.x configuration for the Web app.
+#
+# Models are LiteLLM names: a bare name (gpt-4o) routes through the openai/
+# provider and honours OPENAI_BASE_URL, so any OpenAI-compatible endpoint works
+# unchanged. For another provider use "provider/model" (e.g.
+# "anthropic/claude-sonnet-4-6"). Leave a role unset to inherit it from
+# `index_model` (summaries) or from the SDK default (chat).
+#
+# Set these from the Settings page in the UI, or edit this file directly.
+
+# Builds the tree and writes the node summaries. A cheap model is enough here.
+index_model:
+# The model that searches the tree and answers questions. Use the best you can.
+chat_model:
+# Falls back to index_model.
+summary_model:
+
+# ── PDF pipeline ──
+# flash: the tree comes from the layout statistics and the model only writes
+#        summaries and expands it — much faster and cheaper.
+# standard: the model builds the structure too. Needed for PDFs with no usable
+#        layout structure; slower and more expensive.
+mode: flash
+# full: merge + let the model expand the tree (best search cost)
+# merge: deterministic merge only      off: neither
+optimize: full
+summary: true
+# Use the PDF's embedded bookmarks when they look trustworthy.
+use_embedded_toc: true
+# Word cap per model-written node summary; short leaves keep their own text.
+summary_max_words:
+
+# ── standard mode only ──
+toc_check_page_num: 20
+max_page_num_each_node: 10
+max_token_num_each_node: 20000
+
+# ── node fields ──
+if_add_node_id: "yes"
+if_add_node_summary: "yes"
+if_add_doc_description: "no"
+if_add_node_text: "no"
+
+# ── Markdown (and TXT/JSON/CSV/Word, which convert to it first) ──
+if_thinning: false
+min_token_threshold: 5000
+summary_token_threshold: 200
