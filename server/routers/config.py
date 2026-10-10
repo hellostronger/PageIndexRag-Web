@@ -154,16 +154,27 @@ async def test_connection(request: Request):
             "messages": [{"role": "user", "content": "Hello, respond with just 'OK'."}],
             "drop_params": True,
             "max_retries": 0,
-            "max_tokens": 10,
+            # Reasoning models (GLM, o-series, DeepSeek R1 ...) spend the
+            # first tokens on reasoning_content and leave content empty; a
+            # small budget makes this probe report a blank reply from a
+            # perfectly healthy endpoint.
+            "max_tokens": 512,
             **kwargs,
         })
         latency = int((time.time() - start) * 1000)
+
+        content = response.choices[0].message.content
+        if not content:
+            # Fall back to the reasoning trace so the probe still says
+            # something truthful about a model that answered that way.
+            content = (getattr(response.choices[0].message, "reasoning_content", None)
+                       or "") or None
 
         return {
             "success": True,
             "latency_ms": latency,
             "model_name": model,
-            "response": response.choices[0].message.content,
+            "response": content,
         }
     except Exception as e:
         return {"success": False, "error": str(e)}
