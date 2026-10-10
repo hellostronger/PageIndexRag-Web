@@ -21,9 +21,12 @@ summary_model:
 # standard: the model builds the structure too. Needed for PDFs with no usable
 #        layout structure; slower and more expensive.
 mode: flash
-# full: merge + let the model expand the tree (best search cost)
-# merge: deterministic merge only      off: neither
+# full:  merge + let the model expand the tree (best search cost)
+# merge: deterministic merge only
+# off:   neither
 optimize: full
+# false runs the whole PDF pipeline with no LLM calls at all — a free smoke
+# test of layout extraction, at the cost of node summaries.
 summary: true
 # Use the PDF's embedded bookmarks when they look trustworthy.
 use_embedded_toc: true

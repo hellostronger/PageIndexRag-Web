@@ -1,5 +1,11 @@
 # PageIndex Web — kernel + web server
 #
+# Requires Python 3.11+ (3.12 recommended). Python 3.10.0 ships a
+# typing.ForwardRef without the is_class argument that pydantic passes, so
+# `import litellm` fails there with
+#   TypeError: ForwardRef.__init__() got an unexpected keyword argument 'is_class'
+# 3.10.4 and later are fine.
+#
 # The pageindex/ package in this repo is the upstream 0.2.x SDK: it reaches
 # models through LiteLLM, so litellm is the dependency that matters, and the
 # bare `openai` pin the 0.1.x copy needed is no longer what calls the API.

@@ -192,11 +192,13 @@ else:
     from pageindex.flash import page_index_flash
     from pageindex.flash.api import flash_rejection_reason
 
+    # The kernel spells "off" as False; config.yaml uses the CLI's wording.
+    optimize = params.get("optimize", "full")
     tree = page_index_flash(
         pdf_path,
         summary=params.get("summary", True),
         summary_model=summary_model,
-        optimize=params.get("optimize", "full"),
+        optimize=False if optimize == "off" else optimize,
         optimize_model=params.get("optimize_model") or summary_model,
         summary_max_words=params.get("summary_max_words"),
         use_embedded_toc=params.get("use_embedded_toc", True),
@@ -230,11 +232,12 @@ async def process_pdf(file_path: str, params: dict) -> tuple:
     result_file = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False, encoding='utf-8')
     result_file.close()
 
-    script = _PDF_INDEX_SCRIPT.format(
-        root=str(PROJECT_ROOT),
-        params=opt_file.name,
-        result=result_file.name,
-    )
+    # str.format would treat the script's own JSON braces ({"tree": ...}) as
+    # placeholders, so substitute literally instead.
+    script = (_PDF_INDEX_SCRIPT
+              .replace("{root}", str(PROJECT_ROOT))
+              .replace("{params}", opt_file.name)
+              .replace("{result}", result_file.name))
 
     proc = await asyncio.create_subprocess_exec(
         sys.executable, '-c', script,
@@ -243,20 +246,21 @@ async def process_pdf(file_path: str, params: dict) -> tuple:
     )
     stdout, stderr = await proc.communicate()
 
-    for path in (opt_file.name, result_file.name):
-        try:
-            os.unlink(path)
-        except Exception:
-            pass
+    try:
+        if proc.returncode != 0:
+            error_msg = stderr.decode('utf-8', errors='replace').strip()
+            # The kernel's own traceback is noise here; its last line is the reason.
+            tail = [line for line in error_msg.splitlines() if line.strip()]
+            raise RuntimeError(tail[-1] if tail else "PDF processing failed")
 
-    if proc.returncode != 0:
-        error_msg = stderr.decode('utf-8', errors='replace').strip()
-        # The kernel's own traceback is noise here; its last line is the reason.
-        tail = [line for line in error_msg.splitlines() if line.strip()]
-        raise RuntimeError(tail[-1] if tail else "PDF processing failed")
-
-    with open(result_file.name, "r", encoding="utf-8") as f:
-        payload = json.load(f)
+        with open(result_file.name, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+    finally:
+        for path in (opt_file.name, result_file.name):
+            try:
+                os.unlink(path)
+            except Exception:
+                pass
 
     return payload["tree"], payload.get("pages") or []
 

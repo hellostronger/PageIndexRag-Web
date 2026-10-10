@@ -9,7 +9,13 @@
 
 ## 快速启动
 
-前置：Python 3.10+。
+前置：**Python 3.11 或更高**（推荐 3.12）。
+
+> ⚠️ **不要用 Python 3.10.0**。它的 `typing.ForwardRef.__init__` 还��有
+> `is_class` 参数（3.10.4 才加入），而 pydantic 会传这个参数，结果是
+> `import litellm` 直接报 `TypeError: ForwardRef.__init__() got an
+> unexpected keyword argument 'is_class'`。
+> 用 3.10.4 及以上的 3.10 也可以。
 
 ```bash
 pip install -r requirements.txt
